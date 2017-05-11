@@ -4,44 +4,52 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using WebAPIApplication.Model.Entities;
+using WebAPIApplication.Model.Repositories;
 
 namespace WebAPIApplication.Controllers
 {
     [Route("api/[controller]")]
     public class TodosController : Controller
     {
-        // GET api/values
-        List<TodoItem> _todoList = new List<TodoItem>();
+        private ITodoRepository _todoRepository;
+
+        public TodosController(ITodoRepository todoRepository)
+        {
+            _todoRepository = todoRepository;
+        }
         [HttpGet]
         public IActionResult Get()
         {
-            _todoList.Add(new TodoItem{TodoItemID = 1, Task = "First Task", IsComplete = false}); 
-            return new OkObjectResult(_todoList);
+            var todos = _todoRepository.getAll();
+            return new OkObjectResult(todos);
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public IActionResult Get(int id)
         {
-            return "value";
+            return new OkObjectResult(_todoRepository.Get(id));
         }
 
-        // POST api/values
         [HttpPost]
-        public void Post([FromBody]string value)
+        public IActionResult Post([FromBody]TodoItem item)
         {
+            _todoRepository.Save(item);
+            return Created("api/todos/" + item.TodoItemID, "{\"msg\" : \"Item Created\"}");
         }
 
-        // PUT api/values/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
+        public IActionResult Put(int id, [FromBody]string value)
         {
+            // _todoRepository.Update(item);
+            return NoContent();
         }
 
-        // DELETE api/values/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
+            _todoRepository.Delete(id);
+            return NoContent();
         }
     }
 }
